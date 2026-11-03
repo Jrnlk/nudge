@@ -1,56 +1,46 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { Card, PageHead } from "@/components/ui/Card";
-import { useStore } from "@/lib/store";
+import { SavedApplications } from "@/components/SavedApplications";
+import { Card, EmptyState } from "@/components/ui/Card";
+import { requireUser } from "@/lib/auth";
 
-export default function CareerPage() {
-  const { career, goals, setCareer, toggleGoal, addGoal, removeGoal, sendMessage } = useStore();
-  const router = useRouter();
-  const [newGoal, setNewGoal] = useState("");
+/**
+ * Placeholder Career screen: greeting, where they want to be next (the first
+ * target role from onboarding), and their saved applications.
+ */
+export default async function CareerPage() {
+  const { supabase, user } = await requireUser();
+  const [{ data: profile }, { data: apps }] = await Promise.all([
+    supabase.from("profiles").select("first_name, target_roles").eq("id", user.id).maybeSingle(),
+    supabase.from("applications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+  ]);
 
-  const plan = () => {
-    sendMessage(
-      `Make me a short get-ahead plan. I work as ${career.title || "[role not set]"} at ${career.company || "[company not set]"}, and I want to become ${career.next || "[goal not set]"}. Give me 3 to 5 concrete steps for the next six months.`,
-    );
-    router.push("/ask");
-  };
-
-  const fields = [
-    { key: "company", label: "Company", placeholder: "Where you work, or where you are headed" },
-    { key: "title", label: "Your role", placeholder: "Your job title" },
-    { key: "next", label: "Where you want to be next", placeholder: "For example, Brand Manager in two years" },
-  ] as const;
+  const first = profile?.first_name;
+  const next = profile?.target_roles?.[0];
+  const list = apps ?? [];
 
   return (
     <>
-      <PageHead title="Career" subtitle="Once you land the job, plan how to grow in it." />
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card title="Where you work">
-          {fields.map((f) => (
-            <div key={f.key} className="mb-3.5 grid gap-1.5">
-              <label htmlFor={`c_${f.key}`} className="text-[13px] font-bold">{f.label}</label>
-              <input id={`c_${f.key}`} className="input" placeholder={f.placeholder} value={career[f.key]} onChange={(e) => setCareer({ [f.key]: e.target.value })} />
-            </div>
-          ))}
-          <Button size="sm" onClick={plan}>Ask Nudge for a get-ahead plan</Button>
+      <h1 className="mb-1 text-[clamp(26px,4vw,34px)] font-extrabold leading-tight">
+        Your career{first ? `, ${first}` : ""}
+      </h1>
+      <p className="mb-6 text-muted">One calm place for where you are and where you&apos;re headed.</p>
+
+      <div className="grid gap-5">
+        <Card title="Where you want to be next">
+          {next ? (
+            <p className="text-[17px] font-bold">{next}</p>
+          ) : (
+            <p className="text-muted">Not set yet. You can add a goal here soon.</p>
+          )}
         </Card>
 
-        <Card title="Goals and milestones">
-          {goals.length ? goals.map((g) => (
-            <label key={g.id} className="mb-2 flex items-start gap-2.5 rounded-tile bg-surface px-3.5 py-3">
-              <input type="checkbox" checked={g.done} onChange={() => toggleGoal(g.id)} className="mt-1 accent-[var(--s-interview)]" />
-              <span className={g.done ? "text-muted line-through" : ""}>{g.text}</span>
-              <button type="button" onClick={(e) => { e.preventDefault(); removeGoal(g.id); }} aria-label="Remove goal" className="ml-auto text-[13px] font-semibold text-muted">Remove</button>
-            </label>
-          )) : (
-            <p className="mb-3 text-[13px] text-muted">Add goals for your next role, like a certification, a project to lead, or a skill to build.</p>
+        <Card title="Your applications">
+          {list.length ? (
+            <SavedApplications apps={list} />
+          ) : (
+            <EmptyState>
+              <p>No applications yet. That&apos;s fine if you&apos;re not searching right now.</p>
+            </EmptyState>
           )}
-          <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (newGoal.trim()) { addGoal(newGoal.trim()); setNewGoal(""); } }}>
-            <input value={newGoal} onChange={(e) => setNewGoal(e.target.value)} className="input" placeholder="Add a goal, like “Lead a campaign”" aria-label="New goal" />
-            <Button size="sm" type="submit">Add</Button>
-          </form>
         </Card>
       </div>
     </>

@@ -1,13 +1,22 @@
-/*
-  TODO: auth. Use Supabase Auth or Auth.js. Do not hand-roll passwords. Include Google sign-in.
+import "server-only";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 
-  Export something like:
-    getUser(): Promise<{ id: string; email: string; name: string } | null>
-    requireUser(): returns the user or throws / redirects to /login
+/**
+ * The signed-in user, verified with Supabase Auth (not just read from the cookie).
+ * Returns null when signed out.
+ */
+export async function getUser() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) return null;
+  return data.user;
+}
 
-  Then:
-    - call requireUser() in app/(app)/layout.tsx and in every route handler
-    - swap the placeholder submit in components/AuthForm.tsx for real sign up / log in
-    - replace `userName` in lib/store.tsx with the session's name
-*/
-export {};
+/** Use in signed-in Server Components, Server Actions, and Route Handlers. */
+export async function requireUser() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) redirect("/login");
+  return { supabase, user: data.user };
+}

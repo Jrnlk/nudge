@@ -1,5 +1,6 @@
-import { AuthForm } from "@/components/AuthForm";
+import { redirect } from "next/navigation";
 
+/** Sign-up lives on /login now (one page, with a toggle). */
 export default function SignupPage() {
-  return <AuthForm mode="signup" />;
+  redirect("/login?mode=signup");
 }

@@ -1,45 +1,73 @@
 # Nudge
 
-A calm job search and career app. "Your whole career, one calm place." Working name, still open.
+A calm job search and career app. "Everything for your job search and career, without the noise." Working name, still open.
 
 ## Getting started
 
-```bash
-npm install
-npm run dev
-```
+1. Do the one-time setup in **[SETUP.md](SETUP.md)** (Supabase keys, database migration, Google and Microsoft sign-in).
+2. Then:
 
-Open http://localhost:3000. Click "See the demo" to jump into the app with sample data.
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+3. Open http://localhost:3000/login and create an account.
+
+`.env.local` needs only two values (see `.env.example`):
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon or sb_publishable_ key>
+```
 
 ## What exists today
 
-- **Front end:** landing, sign up, log in, Today, Job search, People (with network web), Career, Ask Nudge. All run on made-up demo data held in memory (`lib/store.tsx`). Nothing persists on reload.
-- **Real logic:** the "Needs a nudge" derivation (`lib/services/applications.ts`) and link prefill with URL validation (`lib/services/prefill.ts`, `app/api/prefill`).
-- **Stubs only:** database, auth, Ask Nudge, applications and contacts APIs, reminders cron. Each file says what to build in a TODO comment.
+- **Real:** sign-in and sign-up (Google, Microsoft, email + password, password reset), the three-step onboarding, and placeholder **Today** and **Career** pages that read your saved data from Supabase. Data is protected by Row Level Security.
+- **Real logic:** the "Needs a nudge" rule (`lib/services/applications.ts`) and reading job details from links (`lib/services/prefill.ts`).
+- **Still demo data:** Job search, People, and Ask Nudge read made-up data from `lib/store.tsx` and don't persist.
+- **Stubs only:** the API routes under `app/api/` (except prefill), Ask Nudge, reminders cron.
 
-See [TASKS.md](TASKS.md) for what to do next.
+See [TASKS.md](TASKS.md) for what's next. Product docs are in [docs/](docs/). How sign-in works with Supabase, Google, and Microsoft: [docs/AUTH.md](docs/AUTH.md).
+
+## How routing works
+
+- Signed out → `/login` (enforced in `proxy.ts`, the Next 16 name for middleware).
+- Signed in, onboarding not finished → `/onboarding`, resuming at the saved step.
+- Signed in, finished → `/today`, or `/career` for people who chose "Settled in a job" and added no applications (`lib/routing.ts`).
 
 ## Layout
 
 ```
+proxy.ts                      session refresh + signed-out redirect (Next 16 "middleware")
 app/
-  (marketing)/page.tsx       landing
-  (auth)/login, signup
-  (app)/today, search, people, career, ask    signed-in screens (shared layout + nav)
-  api/applications, contacts, prefill, ask, cron/reminders
-components/                  UI pieces; ui/ has the primitives, charts/ the visualizations
+  (marketing)/page.tsx        landing
+  (auth)/login                sign in / sign up (one page); /signup redirects here
+  auth/callback               OAuth + PKCE email links: code -> session
+  auth/confirm                email links with token_hash (confirm, reset)
+  auth/continue, signout      post-sign-in routing; POST to sign out
+  auth/reset-password         choose a new password
+  onboarding/                 3-step setup (page + server actions)
+  (app)/today, career         placeholders on real data
+  (app)/search, people, ask   still demo data
+components/
+  auth/                       login screen, provider buttons
+  onboarding/                 the step flow and each step
+  ui/                         primitives
 lib/
-  types.ts                   domain types
-  services/                  pure business rules (no UI, no DB)
-  store.tsx                  temporary client store, replace with real data calls
-  mock/sample.ts             demo data
-  db/, auth.ts, ai/          backend placeholders
+  supabase/                   browser + server clients, proxy helper, DB types
+  auth.ts, routing.ts         getUser/requireUser, where a person belongs
+  onboarding.ts               option lists + server-side validation
+  services/                   pure business rules (no UI, no DB)
+supabase/
+  migrations/                 SQL to run once (see SETUP.md)
+  verify_rls.sql              check that users can't see each other's rows
 ```
 
 ## Design
 
-Colors, radii, and the font are tokens at the top of `app/globals.css`. The app name is one constant in `components/ui/Logo.tsx`. Both are meant to change.
+Colors, radii, and the font are tokens at the top of `app/globals.css`. The app name is one constant in `components/ui/Logo.tsx`.
 
 ## Stack
 
-Next.js (App Router), TypeScript, Tailwind CSS v4, ESLint. Planned: Postgres, Auth, Anthropic API, Vercel.
+Next.js 16 (App Router), TypeScript, Tailwind CSS v4, Supabase (Postgres + Auth via `@supabase/ssr`). Planned: Anthropic API, Vercel.

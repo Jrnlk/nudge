@@ -26,7 +26,7 @@
   --s-interview: #1db07e;
   --s-follow: #f2a900;
   --s-offer: #0c8a5e;
-  --s-rejected: #e5346f;
+  --s-rejected: #7d7aa8; /* muted slate-violet: a rejection is information, not an emergency */
   --s-closed: #c3c7d1;
   --follow-ink: #3a2c00;
 
