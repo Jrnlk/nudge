@@ -7,14 +7,29 @@ You need: Node.js 20.9+ (22 LTS recommended, supabase-js is dropping Node 20), a
 Throughout this guide, **your Supabase callback URL** is:
 
 ```
-https://<project-ref>.supabase.co/auth/v1/callback
+https://qvwervnlgogmcdazhaps.supabase.co/auth/v1/callback
 ```
 
-`<project-ref>` is the first part of your Supabase URL. You can also copy the exact value from Supabase → **Authentication → Sign In / Providers → Google** (it's shown as "Callback URL (for OAuth)").
+(You can also copy it from Supabase → **Authentication → Sign In / Providers → Google**, where it's shown as "Callback URL (for OAuth)". For a different project, swap in that project's ref.)
+
+## Your progress
+
+As of 2026-11-03:
+
+- [x] **1. Connect the app to Supabase.** `.env.local` is filled in and the Data API is on.
+- [x] **2. Database tables.** Both migrations are live, and Supabase's security check reports no issues.
+- [x] **3. Redirect URL allow-list.**
+- [ ] **4. Email sign-in.** Check two settings, and optionally edit two email templates. About 5 minutes.
+- [ ] **5. Google sign-in.** Google Cloud OAuth client, then paste it into Supabase. About 10 minutes.
+- [ ] **6. Microsoft sign-in.** Azure app registration, then paste it into Supabase. About 15 minutes.
+- [ ] **7. Run the app.**
+- [ ] **8. Test everything**, including the RLS check.
+
+You can do 4 and 7 first and test email sign-up before setting up Google or Microsoft. Until a provider is turned on in Supabase, its button opens a plain Supabase error page ("provider is not enabled"). Press Back to return.
 
 ---
 
-## 1. Connect the app to Supabase
+## 1. Connect the app to Supabase ✅ Done
 
 1. In Supabase, click **Connect** → **Framework** → Next.js / App Router. If you see "Database access requires the Data API", click **Enable Data API**.
 2. Copy `.env.example` to `.env.local` in the project root and fill in:
@@ -28,7 +43,9 @@ https://<project-ref>.supabase.co/auth/v1/callback
    - **Never** put the `service_role` / secret key in this file or in any `NEXT_PUBLIC_` variable. The app doesn't need it.
    - `.env.local` is gitignored (`.env*` in `.gitignore`).
 
-## 2. Create the database tables
+## 2. Create the database tables ✅ Done
+
+> Already applied to your project, including the second migration, [`20261103010000_tighten_grants.sql`](supabase/migrations/20261103010000_tighten_grants.sql), which removes default permissions the app doesn't use. These steps are kept for a fresh project. In a new project, run both files in order.
 
 1. Supabase → **SQL Editor** → **New query**.
 2. Paste the whole of [`supabase/migrations/20261103000000_profiles_applications.sql`](supabase/migrations/20261103000000_profiles_applications.sql) and click **Run**. You should see "Success. No rows returned".
@@ -40,7 +57,9 @@ The migration creates:
 
 (If you later install the Supabase CLI, `npx supabase link` then `npx supabase db push` applies the same file.)
 
-## 3. Redirect URL allow-list
+## 3. Redirect URL allow-list ✅ Done
+
+> When you deploy, come back here to add the production URL and switch the Site URL.
 
 Supabase → **Authentication → URL Configuration**:
 
@@ -52,7 +71,7 @@ Supabase → **Authentication → URL Configuration**:
 
 Sign-in only returns to addresses on this list.
 
-## 4. Email and password sign-in
+## 4. Email and password sign-in ⬜ To do
 
 Supabase → **Authentication → Sign In / Providers → Email**: make sure it's enabled. Keep **Confirm email** on.
 
@@ -73,7 +92,7 @@ Supabase → **Authentication → Sign In / Providers → Email**: make sure it'
 
 With these, the links work even when opened in a different browser or on a phone. Without them, the default links still work, but only in the same browser that asked for them.
 
-## 5. Google sign-in
+## 5. Google sign-in ⬜ To do
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/) and create a project (or pick one), for example "Nudge".
 2. **Google Auth Platform → Branding** (the OAuth consent screen): app name "Nudge", your support email, developer contact email. **Audience**: External.
@@ -85,7 +104,7 @@ With these, the links work even when opened in a different browser or on a phone
 4. Copy the **Client ID** and **Client secret**.
 5. Supabase → **Authentication → Sign In / Providers → Google**: enable it, paste the Client ID and secret, and click **Save**.
 
-## 6. Microsoft (Outlook) sign-in
+## 6. Microsoft (Outlook) sign-in ⬜ To do
 
 This works for personal Microsoft accounts (Outlook.com, Hotmail, Live) **and** work or school accounts.
 
@@ -115,7 +134,7 @@ The app asks Microsoft for the `email` scope, so the email address comes back wi
 
 **About "Need admin approval":** some schools and companies block new apps until an IT admin approves them. If someone sees that screen and goes back, `/login` shows a friendly message suggesting Google or email instead. Over time, [publisher verification](https://learn.microsoft.com/entra/identity-platform/publisher-verification-overview) (needs a Microsoft Partner Network account) makes Nudge look more trustworthy on these screens, but each organization still decides.
 
-## 7. Run it
+## 7. Run it ⬜ To do
 
 ```bash
 npm install
@@ -124,7 +143,9 @@ npm run dev
 
 Open http://localhost:3000/login.
 
-## 8. Check that everything works
+## 8. Check that everything works ⬜ To do
+
+Tip: after you sign up, Claude Code (connected to Supabase in this project) can check your saved rows and run the RLS check for you. Just ask.
 
 - [ ] **Email**: Create account → confirm the email → you land on onboarding step 1.
 - [ ] **Google**: Continue with Google → onboarding (your first name is already filled in, so step 1 doesn't ask for it).
