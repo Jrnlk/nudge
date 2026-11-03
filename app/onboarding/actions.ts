@@ -1,16 +1,18 @@
 "use server";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
-import { baseDate, cleanAnswers, cleanRows } from "@/lib/onboarding";
+import { baseDate, cleanAnswers, cleanRows, ONBOARDING_STEPS } from "@/lib/onboarding";
 
 type Result = { error: string } | undefined;
 
 const SAVE_FAILED = "We couldn't save that just now. Your answers are still here, so try again in a moment.";
 
-/** Called whenever the person leaves a step (Continue, Back, or swipe). `step` is where they are going (1-3). */
+const clampStep = (step: unknown) => Math.min(ONBOARDING_STEPS, Math.max(1, Math.round(Number(step) || 1)));
+
+/** Called whenever the person leaves a step (Continue, Back, or swipe). `step` is where they are going (1-4). */
 export async function saveProgress(answers: unknown, step: number): Promise<Result> {
   const { supabase, user } = await requireUser();
-  const onboarding_step = Math.min(3, Math.max(1, Math.round(Number(step) || 1)));
+  const onboarding_step = clampStep(step);
   const { error } = await supabase
     .from("profiles")
     .update({ ...cleanAnswers(answers), onboarding_step })
@@ -35,10 +37,12 @@ export async function skipSetup(answers: unknown): Promise<Result> {
   redirect(profile.situation === "settled" && !count ? "/career" : "/today");
 }
 
-/** "Add N applications" / "Skip for now" on step 3. The only place onboarding writes to applications. */
-export async function finishOnboarding(answers: unknown, rows: unknown, clientToday: unknown): Promise<Result> {
+/**
+ * Leaving step 3 forward ("Add N applications" or "Continue"). Adds the ready
+ * jobs, then records step 4. The only place onboarding writes to applications.
+ */
+export async function addOnboardingJobs(answers: unknown, rows: unknown, clientToday: unknown): Promise<Result> {
   const { supabase, user } = await requireUser();
-  const profile = cleanAnswers(answers);
   const apps = cleanRows(rows, baseDate(clientToday)).map((a) => ({ ...a, user_id: user.id }));
 
   if (apps.length) {
@@ -48,9 +52,24 @@ export async function finishOnboarding(answers: unknown, rows: unknown, clientTo
 
   const { error } = await supabase
     .from("profiles")
-    .update({ ...profile, onboarding_step: 3, onboarding_completed_at: new Date().toISOString() })
+    .update({ ...cleanAnswers(answers), onboarding_step: ONBOARDING_STEPS })
+    .eq("id", user.id);
+  if (error) return { error: SAVE_FAILED };
+}
+
+/** "Continue to Nudge" on the last step: mark onboarding done so it never shows again. */
+export async function finishOnboarding(answers: unknown): Promise<Result> {
+  const { supabase, user } = await requireUser();
+  const profile = cleanAnswers(answers);
+  const { error } = await supabase
+    .from("profiles")
+    .update({ ...profile, onboarding_step: ONBOARDING_STEPS, onboarding_completed_at: new Date().toISOString() })
     .eq("id", user.id);
   if (error) return { error: SAVE_FAILED };
 
-  redirect(profile.situation === "settled" && apps.length === 0 ? "/career" : "/today");
+  const { count } = await supabase
+    .from("applications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+  redirect(profile.situation === "settled" && !count ? "/career" : "/today");
 }

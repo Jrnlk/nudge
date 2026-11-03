@@ -27,7 +27,11 @@ export interface Application {
   dateApplied?: string;
   /** ISO date, YYYY-MM-DD */
   lastActivity?: string;
+  /** Where the job was found, e.g. "Company site", "Referral". */
+  source?: string;
   notes?: string;
+  /** ISO timestamp, for sorting. */
+  updatedAt?: string;
 }
 
 export interface Contact {

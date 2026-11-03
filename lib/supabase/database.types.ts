@@ -5,8 +5,8 @@
  */
 
 export type Situation = "in_school" | "employed_looking" | "between_jobs" | "settled";
-export type ApplicationStatus = "applied" | "interviewing" | "offer" | "rejected" | "not_applied" | "archived";
-export type ApplicationSource = "link" | "manual" | "email";
+/** Stored as text with a check constraint. "Needs a nudge" is derived, never stored. */
+export type ApplicationStatus = "Researching" | "Applied" | "Interviewing" | "Offer" | "Rejected" | "Archived";
 
 export type ProfileRow = {
   id: string;
@@ -31,9 +31,13 @@ export type ApplicationRow = {
   role: string | null;
   location: string | null;
   status: ApplicationStatus;
-  applied_on: string | null;
+  /** YYYY-MM-DD */
+  date_applied: string | null;
+  /** YYYY-MM-DD. Set by the app when the status changes or notes are edited. */
+  last_activity: string | null;
   posting_url: string | null;
-  source: ApplicationSource;
+  /** Where the job was found, e.g. "Company site", "Referral". */
+  source: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -62,8 +66,6 @@ export type Database = {
     Functions: { [_ in never]: never };
     Enums: {
       situation: Situation;
-      application_status: ApplicationStatus;
-      application_source: ApplicationSource;
     };
     CompositeTypes: { [_ in never]: never };
   };

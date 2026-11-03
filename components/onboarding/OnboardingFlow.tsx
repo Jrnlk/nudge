@@ -1,20 +1,22 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
-import { finishOnboarding, saveProgress, skipSetup } from "@/app/onboarding/actions";
+import { addOnboardingJobs, finishOnboarding, saveProgress, skipSetup } from "@/app/onboarding/actions";
+import { StepEmail } from "@/components/onboarding/StepEmail";
 import { StepJobs } from "@/components/onboarding/StepJobs";
 import { StepLooking } from "@/components/onboarding/StepLooking";
 import { StepSituation } from "@/components/onboarding/StepSituation";
 import { Button } from "@/components/ui/Button";
 import { LogoMark, APP_NAME } from "@/components/ui/Logo";
 import { toISO } from "@/lib/dates";
-import type { Answers, DraftRow } from "@/lib/onboarding";
+import { ONBOARDING_STEPS, type Answers, type DraftRow } from "@/lib/onboarding";
 
-const STEPS = 3;
+const STEPS = ONBOARDING_STEPS;
+const JOBS_STEP = 2; // 0-based: leaving it forward saves the ready jobs first
 const SWIPE_DISTANCE = 60; // px
 const TEXT_INPUT = 'input:not([type=radio]):not([type=checkbox]), textarea, select, button, a, [contenteditable="true"]';
 
 /**
- * Three onboarding steps side by side in a horizontal track. Continue/Back
+ * Four onboarding steps side by side in a horizontal track. Continue/Back
  * (and swipes on touch screens) slide between them. Each step's answers are
  * saved when the person leaves it, so a refresh resumes at the same step.
  */
@@ -30,6 +32,7 @@ export function OnboardingFlow({
   const [step, setStep] = useState(initialStep);
   const [answers, setAnswers] = useState<Answers>(initialAnswers);
   const [rows, setRowsState] = useState<DraftRow[]>([]);
+  const [added, setAdded] = useState(0);
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
   const [drag, setDrag] = useState<number | null>(null);
@@ -64,9 +67,27 @@ export function OnboardingFlow({
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [step]);
 
+  // Step 3 -> 4: add the ready jobs, then move on. They stay in the list if saving fails.
+  const saveJobsAndContinue = useCallback(() => {
+    setError("");
+    startTransition(async () => {
+      try {
+        const res = await addOnboardingJobs(answers, rows, toISO(new Date()));
+        if (res?.error) return setError(res.error);
+        setAdded((n) => n + rows.filter((r) => r.company.trim()).length);
+        setRowsState((rs) => rs.filter((r) => !r.company.trim())); // rows still missing a company stay
+        moved.current = true;
+        setStep(JOBS_STEP + 1);
+      } catch {
+        setError("We couldn't add those jobs just now. Check your connection and try again.");
+      }
+    });
+  }, [answers, rows]);
+
   const goTo = useCallback(
     (next: number) => {
       if (next < 0 || next >= STEPS || next === step || pending) return;
+      if (step === JOBS_STEP && next > step) return saveJobsAndContinue();
       moved.current = true;
       setError("");
       setStep(next);
@@ -76,21 +97,21 @@ export function OnboardingFlow({
         .then((res) => res?.error && setError(res.error))
         .catch(() => setError("We couldn't save that just now. Check your connection and try again."));
     },
-    [answers, pending, step],
+    [answers, pending, step, saveJobsAndContinue],
   );
 
   const finish = useCallback(() => {
     setError("");
     startTransition(async () => {
       try {
-        const res = await finishOnboarding(answers, rows, toISO(new Date()));
+        const res = await finishOnboarding(answers);
         if (res?.error) setError(res.error);
       } catch (e) {
         if (isRedirect(e)) throw e;
         setError("We couldn't finish setting up just now. Check your connection and try again.");
       }
     });
-  }, [answers, rows]);
+  }, [answers]);
 
   const skip = useCallback(() => {
     setError("");
@@ -139,13 +160,17 @@ export function OnboardingFlow({
   }
 
   const continueLabel =
-    step < STEPS - 1
-      ? "Continue"
-      : pending
-        ? "Adding…"
-        : ready
-          ? `Add ${ready} application${ready === 1 ? "" : "s"}`
-          : "Skip for now";
+    step === STEPS - 1
+      ? pending
+        ? "One moment…"
+        : "Continue to Nudge"
+      : step === JOBS_STEP
+        ? pending
+          ? "Adding…"
+          : ready
+            ? `Add ${ready} application${ready === 1 ? "" : "s"}`
+            : "Continue"
+        : "Continue";
 
   return (
     <div className="min-h-dvh bg-paper" onKeyDown={onKeyDown}>
@@ -201,7 +226,7 @@ export function OnboardingFlow({
             }`}
             style={{ transform: `translate3d(calc(${-step * 100}% + ${drag ?? 0}px), 0, 0)` }}
           >
-            {[0, 1, 2].map((i) => (
+            {Array.from({ length: STEPS }, (_, i) => (
               <div
                 key={i}
                 ref={(el) => {
@@ -217,6 +242,7 @@ export function OnboardingFlow({
                 {i === 2 && (
                   <StepJobs ref={(el) => void (headings.current[2] = el)} settled={settled} rows={rows} setRows={setRows} />
                 )}
+                {i === 3 && <StepEmail ref={(el) => void (headings.current[3] = el)} added={added} />}
               </div>
             ))}
           </div>
