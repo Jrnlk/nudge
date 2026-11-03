@@ -28,7 +28,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon or sb_publishable_ key>
 - **Still demo data:** Job search, People, and Ask Nudge read made-up data from `lib/store.tsx` and don't persist.
 - **Stubs only:** the API routes under `app/api/` (except prefill), Ask Nudge, reminders cron.
 
-See [TASKS.md](TASKS.md) for what's next. Product docs are in [docs/](docs/).
+See [TASKS.md](TASKS.md) for what's next. Product docs are in [docs/](docs/). How sign-in works with Supabase, Google, and Microsoft: [docs/AUTH.md](docs/AUTH.md).
 
 ## How routing works
 
