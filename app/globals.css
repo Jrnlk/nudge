@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/*
+  DESIGN TOKENS
+  Visual design is still open. Every color, radius, and font used by the UI comes
+  from the variables below, so a redesign should mostly mean editing this block.
+  Starting values come from the old prototype (yellow + navy). Try the sage
+  palette or anything else by changing these.
+*/
+:root {
+  --paper: #ffffff;
+  --soft: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #191b2a;
+  --muted: #5f6375;
+  --line: #e4e6eb;
+  --brand: #ffc83d;
+  --brand-ink: #191b2a;
+  --primary: #191b2a;
+  --primary-ink: #ffffff;
+  --focus: #2d5bff;
+  --hero: #fff6da;
+
+  --s-research: #8b90a0;
+  --s-applied: #2d5bff;
+  --s-interview: #1db07e;
+  --s-follow: #f2a900;
+  --s-offer: #0c8a5e;
+  --s-rejected: #e5346f;
+  --s-closed: #c3c7d1;
+  --follow-ink: #3a2c00;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14161f;
+    --soft: #1c1f2b;
+    --surface: #1c1f2b;
+    --ink: #eceef4;
+    --muted: #a3a8b8;
+    --line: #2d3141;
+    --primary: #ffc83d;
+    --primary-ink: #191b2a;
+    --focus: #7d9aff;
+    --hero: #221f14;
+    --s-applied: #5b7fff;
+    --s-closed: #4b5063;
+    color-scheme: dark;
+  }
+}
+
+/* Exposes the tokens as Tailwind utilities: bg-soft, text-muted, border-line, etc. */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-soft: var(--soft);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-primary: var(--primary);
+  --color-primary-ink: var(--primary-ink);
+  --color-focus: var(--focus);
+  --color-hero: var(--hero);
+  --color-st-research: var(--s-research);
+  --color-st-applied: var(--s-applied);
+  --color-st-interview: var(--s-interview);
+  --color-st-follow: var(--s-follow);
+  --color-st-offer: var(--s-offer);
+  --color-st-rejected: var(--s-rejected);
+  --color-st-closed: var(--s-closed);
+
+  --radius-card: 20px;
+  --radius-tile: 14px;
+  --radius-field: 10px;
+
+  --font-sans: var(--font-nunito), "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+
+:where(button, input, select, textarea, a, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+button {
+  cursor: pointer;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Shared form control look */
+.input {
+  width: 100%;
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  padding: 11px 12px;
+}
+textarea.input {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Status chip: pale tint with darker text instead of a solid block */
+.chip {
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 4px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--c, var(--s-research)) 20%, var(--surface));
+  color: color-mix(in srgb, var(--c, var(--s-research)) 62%, var(--ink));
+}
+.chip[data-nudge="true"] {
+  color: var(--follow-ink);
+}
