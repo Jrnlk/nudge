@@ -149,7 +149,8 @@ sequenceDiagram
   participant N as Nudge /auth/callback
   participant DB as Postgres
 
-  U->>B: Email + password, "Create account"
+  U->>B: Email, password, and the password again,<br/>"Create account"
+  B->>B: Checks 8+ characters and that both match<br/>(Supabase isn't called until they pass)
   B->>SA: signUp(email, password,<br/>emailRedirectTo=/auth/callback?next=/onboarding)
   SA->>DB: Create auth.users row (unconfirmed)
   DB-->>DB: Trigger creates the profiles row
@@ -164,7 +165,7 @@ sequenceDiagram
 
 Details:
 
-- **Passwords** are hashed and stored by Supabase. Nudge never stores them. The app asks for at least 8 characters.
+- **Passwords** are hashed and stored by Supabase. Nudge never stores them. Create account asks for at least 8 characters, typed twice ("Confirm password"). Log in has a single password field. Both have a Show/Hide button.
 - **"Email already in use."** With Confirm email on, Supabase doesn't reveal whether an address is registered, so that strangers can't probe for accounts. Instead it returns a user with no identities. The login screen detects that and shows "There's already an account with this email" with a **Log in** shortcut.
 - **Same-browser rule.** The PKCE secret lives in the browser that signed up, so the link has to be opened there. If it's opened elsewhere, the email still gets confirmed, `/auth/callback` shows "link expired", and the person just logs in. Once custom SMTP is set up, the email templates can point at [`/auth/confirm`](../app/auth/confirm/route.ts) (`token_hash` links), which work in any browser. See SETUP.md §4.
 - **The built-in email sender** only delivers to your Supabase team's addresses, a few per hour. Real users need custom SMTP.

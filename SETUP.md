@@ -17,7 +17,7 @@ https://qvwervnlgogmcdazhaps.supabase.co/auth/v1/callback
 As of 2026-11-03:
 
 - [x] **1. Connect the app to Supabase.** `.env.local` is filled in and the Data API is on.
-- [x] **2. Database tables.** Both migrations are live, and Supabase's security check reports no issues.
+- [x] **2. Database tables.** All three migrations are live, and Supabase's security check reports no database issues.
 - [x] **3. Redirect URL allow-list.**
 - [ ] **4. Email sign-in.** Check two settings. About 2 minutes. (Custom SMTP and email templates can wait until before real users.)
 - [ ] **5. Google sign-in.** Google Cloud OAuth client, then paste it into Supabase. About 10 minutes.
@@ -45,7 +45,7 @@ You can do 4 and 7 first and test email sign-up before setting up Google or Micr
 
 ## 2. Create the database tables ✅ Done
 
-> Already applied to your project, including the second migration, [`20261103010000_tighten_grants.sql`](supabase/migrations/20261103010000_tighten_grants.sql), which removes default permissions the app doesn't use. These steps are kept for a fresh project. In a new project, run both files in order.
+> Already applied to your project, along with [`20261103010000_tighten_grants.sql`](supabase/migrations/20261103010000_tighten_grants.sql), which removes default permissions the app doesn't use, and [`20261103020000_applications_tracker.sql`](supabase/migrations/20261103020000_applications_tracker.sql), which reshapes `applications` for the Job search tracker. These steps are kept for a fresh project. In a new project, run all three files in order, the same way. The SQL Editor warns before running the third one ("destructive operations", "UPDATE without a WHERE clause"); that's expected, see [docs/TRACKER.md](docs/TRACKER.md#migrations).
 
 1. Supabase → **SQL Editor** → **New query**.
 2. Paste the whole of [`supabase/migrations/20261103000000_profiles_applications.sql`](supabase/migrations/20261103000000_profiles_applications.sql) and click **Run**. You should see "Success. No rows returned".
@@ -55,7 +55,7 @@ The migration creates:
 - `profiles` (one row per user, created automatically by a trigger on sign-up) and `applications`.
 - Row Level Security on both tables: people can only select, insert, update, and delete their own rows. Signed-out requests can't read anything.
 
-(If you later install the Supabase CLI, `npx supabase link` then `npx supabase db push` applies the same file.)
+(In a new project with the Supabase CLI, `npx supabase link` then `npx supabase db push` applies the same files.)
 
 ## 3. Redirect URL allow-list ✅ Done
 
@@ -147,14 +147,15 @@ Open http://localhost:3000/login.
 
 Tip: after you sign up, Claude Code (connected to Supabase in this project) can check your saved rows and run the RLS check for you. Just ask.
 
-- [ ] **Email**: Create account → confirm the email → you land on onboarding step 1.
+- [ ] **Email**: Create account with two different passwords first: you see "Passwords don't match" and nothing is sent. Then use matching ones → confirm the email → you land on onboarding step 1.
 - [ ] **Google**: Continue with Google → onboarding (your first name is already filled in, so step 1 doesn't ask for it).
 - [ ] **Microsoft, personal**: Sign in with Microsoft using an Outlook.com account.
 - [ ] **Microsoft, work/school**: same with a school account. If you get "Need admin approval", go back and check the message on `/login`.
 - [ ] **Resume**: on step 2, refresh the page. You stay on step 2 with your step 1 answers kept.
-- [ ] **Finish**: on step 3 add a few jobs (mark one "Applied last week"), press "Add N applications". You land on Today and that job shows "Needs a nudge".
+- [ ] **Finish**: on step 3 add a few jobs (mark one "Applied last week") and press "Add N applications". Step 4 shows two email options marked Coming soon that can't be clicked. Press "Continue to Nudge": you land on Today and that job shows "Needs a nudge".
 - [ ] **Returning user**: log out and back in. You skip onboarding.
 - [ ] **Data**: Supabase → Table Editor shows your answers in `profiles` and the jobs in `applications`.
+- [ ] **Job search**: add an application, edit it, change its status from the chip, archive it, and delete one (two clicks). Reload: everything is as you left it.
 
 ### Verify Row Level Security
 
