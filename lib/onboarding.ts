@@ -3,9 +3,12 @@
  * plus the validation the server runs before anything touches the database.
  * Pure functions only, safe to import on both sides.
  */
-import type { ApplicationSource, ApplicationStatus, ProfileRow, Situation } from "@/lib/supabase/database.types";
+import type { ApplicationStatus, ProfileRow, Situation } from "@/lib/supabase/database.types";
 
 export const MAX_ROLES = 3;
+
+/** Situation, what you're looking for, jobs, and email options. */
+export const ONBOARDING_STEPS = 4;
 
 export const SITUATIONS: { value: Situation; label: string; hint: string }[] = [
   { value: "in_school", label: "In school or just graduated", hint: "Looking for an internship or a first job" },
@@ -37,13 +40,13 @@ export const START_TIMINGS = [
 ] as const;
 export type StartTiming = (typeof START_TIMINGS)[number]["value"];
 
-export type DraftStatus = Exclude<ApplicationStatus, "archived">;
+export type DraftStatus = Exclude<ApplicationStatus, "Archived">;
 export const ROW_STATUSES: { value: DraftStatus; label: string }[] = [
-  { value: "applied", label: "Applied" },
-  { value: "interviewing", label: "Interviewing" },
-  { value: "offer", label: "Offer" },
-  { value: "rejected", label: "Rejected" },
-  { value: "not_applied", label: "Not applied yet" },
+  { value: "Applied", label: "Applied" },
+  { value: "Interviewing", label: "Interviewing" },
+  { value: "Offer", label: "Offer" },
+  { value: "Rejected", label: "Rejected" },
+  { value: "Researching", label: "Not applied yet" },
 ];
 
 /**
@@ -76,7 +79,8 @@ export interface DraftRow {
   role: string;
   location: string;
   postingUrl: string;
-  source: Extract<ApplicationSource, "link" | "manual">;
+  /** How the row was added here (UI only, not saved). */
+  source: "link" | "manual";
   status: DraftStatus;
   when: When;
   /** The company came from the link, so it may be run together ("Oceanspray"). */
@@ -152,19 +156,21 @@ export function cleanRows(raw: unknown, base: Date) {
     const row = (r && typeof r === "object" ? r : {}) as Record<string, unknown>;
     const company = text(row.company, 200);
     if (!company) return []; // Rows without a company are left out until one is added.
-    const status = oneOf(row.status, ROW_STATUSES) ?? "applied";
+    const status = oneOf(row.status, ROW_STATUSES) ?? "Applied";
     const when = WHEN.find((w) => w.value === row.when) ?? WHEN[0];
     const applied = new Date(base);
     applied.setUTCDate(applied.getUTCDate() - when.daysAgo);
+    const date_applied = status === "Researching" ? null : applied.toISOString().slice(0, 10);
     return [
       {
         company,
         role: text(row.role, 200) || null,
         location: text(row.location, 200) || null,
         posting_url: safeHttpUrl(row.postingUrl),
-        source: (row.source === "link" ? "link" : "manual") as ApplicationSource,
         status: status as ApplicationStatus,
-        applied_on: status === "not_applied" ? null : applied.toISOString().slice(0, 10),
+        date_applied,
+        // Nothing has happened since applying, so the nudge clock starts there.
+        last_activity: date_applied ?? base.toISOString().slice(0, 10),
       },
     ];
   });

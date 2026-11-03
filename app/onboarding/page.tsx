@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { requireUser } from "@/lib/auth";
-import { answersFromProfile } from "@/lib/onboarding";
+import { answersFromProfile, ONBOARDING_STEPS } from "@/lib/onboarding";
 import { destinationFor } from "@/lib/routing";
 
 export const metadata: Metadata = { title: "Set up · Nudge" };
@@ -24,7 +24,7 @@ export default async function OnboardingPage() {
   return (
     <OnboardingFlow
       initialAnswers={answersFromProfile(profile)}
-      initialStep={Math.min(3, Math.max(1, profile.onboarding_step)) - 1}
+      initialStep={Math.min(ONBOARDING_STEPS, Math.max(1, profile.onboarding_step)) - 1}
       askName={!profile.first_name}
     />
   );

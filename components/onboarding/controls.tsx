@@ -1,12 +1,13 @@
 "use client";
 import { forwardRef, useState } from "react";
+import { ONBOARDING_STEPS } from "@/lib/onboarding";
 
 /** Heading block shared by every step. The h2 receives focus when its step slides in. */
 export const StepHeader = forwardRef<HTMLHeadingElement, { step: number; title: string; sub: string }>(
   function StepHeader({ step, title, sub }, ref) {
     return (
       <div className="mb-7">
-        <p className="mb-1.5 text-[13px] font-bold text-muted">Step {step} of 3</p>
+        <p className="mb-1.5 text-[13px] font-bold text-muted">Step {step} of {ONBOARDING_STEPS}</p>
         <h2 ref={ref} tabIndex={-1} className="text-[clamp(26px,6vw,32px)] font-extrabold leading-tight outline-none">
           {title}
         </h2>

@@ -1,17 +1,29 @@
 "use client";
 import { useRef, useState } from "react";
+import { ApplicationForm } from "@/components/ApplicationForm";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { FORMS } from "@/lib/forms";
 import { useStore } from "@/lib/store";
 import type { Prefill } from "@/lib/services/prefill";
+import type { EntityKind } from "@/lib/types";
 
-/** One add/edit dialog for applications, people, and target companies. Mounted once in the app shell. */
+type LocalKind = Exclude<EntityKind, "apps">;
+
+/**
+ * One add/edit dialog, mounted once in the app shell. Applications use their own
+ * form (saved to Supabase); people and target companies use the generic one below.
+ */
 export function FormDialog() {
   const { editor, closeEditor } = useStore();
   return (
     <Modal open={!!editor} onClose={closeEditor}>
-      {editor && <FormBody key={`${editor.kind}:${editor.id ?? "new"}`} />}
+      {editor &&
+        (editor.kind === "apps" ? (
+          <ApplicationForm key={`apps:${editor.id ?? "new"}`} id={editor.id} />
+        ) : (
+          <FormBody key={`${editor.kind}:${editor.id ?? "new"}`} />
+        ))}
     </Modal>
   );
 }
@@ -19,7 +31,7 @@ export function FormDialog() {
 function FormBody() {
   const store = useStore();
   const { editor, closeEditor, save, remove } = store;
-  const kind = editor!.kind;
+  const kind = editor!.kind as LocalKind;
   const def = FORMS[kind];
   const item = (editor!.id ? (store[kind] as { id: string }[]).find((x) => x.id === editor!.id) : undefined) as
     | Record<string, string | undefined>
@@ -74,7 +86,7 @@ function FormBody() {
             {f.type === "textarea" ? (
               <textarea id={`f_${f.key}`} name={f.key} defaultValue={item?.[f.key] ?? ""} className="input" />
             ) : f.type === "select" ? (
-              <select id={`f_${f.key}`} name={f.key} defaultValue={item?.[f.key] ?? f.options?.[kind === "apps" ? 1 : 0]} className="input">
+              <select id={`f_${f.key}`} name={f.key} defaultValue={item?.[f.key] ?? f.options?.[0]} className="input">
                 {f.options!.map((o) => (
                   <option key={o} value={o}>{o || "Not set"}</option>
                 ))}

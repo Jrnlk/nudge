@@ -14,6 +14,10 @@ type Provider = "google" | "azure";
 const PENDING_KEY = "nudge:oauth-pending";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** Matches the minimum set in Supabase -> Authentication -> Providers -> Email (see SETUP.md). */
+const MIN_PASSWORD = 8;
+
+type FieldErrors = { password?: string; confirm?: string };
 
 export function LoginScreen({
   initialMode,
@@ -30,6 +34,9 @@ export function LoginScreen({
   const [notice, setNotice] = useState<LoginNotice | null>(initialNotice);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [error, setError] = useState("");
   const [errorAction, setErrorAction] = useState<Mode | null>(null);
   const [info, setInfo] = useState("");
@@ -66,6 +73,8 @@ export function LoginScreen({
 
   function switchMode(next: Mode) {
     setMode(next);
+    setConfirm("");
+    setFieldErrors({});
     setError("");
     setErrorAction(null);
     setInfo("");
@@ -98,6 +107,7 @@ export function LoginScreen({
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
     setErrorAction(null);
     setInfo("");
     setNotice(null);
@@ -116,7 +126,18 @@ export function LoginScreen({
       return setInfo(`If there's an account for ${cleanEmail}, a reset link is on its way. It can take a minute to arrive.`);
     }
 
-    if (mode === "signup" && password.length < 8) return setError("Pick a password with at least 8 characters.");
+    if (mode === "signup") {
+      // Checked here first; Supabase is only called once both pass.
+      const errs: FieldErrors = {};
+      if (password.length < MIN_PASSWORD) errs.password = `Use at least ${MIN_PASSWORD} characters.`;
+      if (!confirm) errs.confirm = "Type your password again to confirm it.";
+      else if (confirm !== password) errs.confirm = "Passwords don't match.";
+      if (errs.password || errs.confirm) {
+        setFieldErrors(errs);
+        document.getElementById(errs.password ? "password" : "confirm-password")?.focus();
+        return;
+      }
+    }
     if (mode === "login" && !password) return setError("Enter your password.");
 
     setBusy("email");
@@ -141,9 +162,13 @@ export function LoginScreen({
         router.replace("/onboarding");
         return router.refresh();
       }
+      // "Confirm email" is on (SETUP.md): no session until the link is opened.
       setBusy(null);
       setPassword("");
-      return setInfo(`Almost there. We sent a confirmation link to ${cleanEmail}. Open it to continue.`);
+      setConfirm("");
+      return setInfo(
+        `Almost there. We sent a confirmation link to ${cleanEmail}. Open it in this browser to finish creating your account. If it isn't there in a few minutes, check your spam folder.`,
+      );
     }
 
     const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
@@ -243,11 +268,27 @@ export function LoginScreen({
               <Field
                 id="password"
                 label="Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                placeholder={mode === "signup" ? "At least 8 characters" : undefined}
+                placeholder={mode === "signup" ? `At least ${MIN_PASSWORD} characters` : undefined}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (fieldErrors.password) setFieldErrors((f) => ({ ...f, password: undefined }));
+                }}
+                error={fieldErrors.password}
+                trailing={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-pressed={showPassword}
+                    aria-controls={mode === "signup" ? "password confirm-password" : "password"}
+                    aria-label={mode === "signup" ? "Show passwords" : "Show password"}
+                    className="absolute inset-y-0 right-0 my-auto mr-1 h-9 rounded-full px-3 text-[13px] font-bold text-muted hover:bg-soft hover:text-ink"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                }
                 labelAside={
                   mode === "login" ? (
                     <button type="button" onClick={() => switchMode("forgot")} className="text-[13px] font-bold text-muted underline-offset-2 hover:text-ink hover:underline">
@@ -255,6 +296,20 @@ export function LoginScreen({
                     </button>
                   ) : null
                 }
+              />
+            )}
+            {mode === "signup" && (
+              <Field
+                id="confirm-password"
+                label="Confirm password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                value={confirm}
+                onChange={(e) => {
+                  setConfirm(e.target.value);
+                  if (fieldErrors.confirm) setFieldErrors((f) => ({ ...f, confirm: undefined }));
+                }}
+                error={fieldErrors.confirm}
               />
             )}
 
@@ -301,8 +356,18 @@ function Field({
   id,
   label,
   labelAside,
+  trailing,
+  error,
   ...rest
-}: { id: string; label: string; labelAside?: React.ReactNode } & React.InputHTMLAttributes<HTMLInputElement>) {
+}: {
+  id: string;
+  label: string;
+  labelAside?: React.ReactNode;
+  /** Shown inside the right edge of the input (the Show/Hide button). */
+  trailing?: React.ReactNode;
+  /** Inline error under the input. */
+  error?: string;
+} & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div className="mb-4 grid gap-1.5">
       <div className="flex items-baseline justify-between">
@@ -311,7 +376,22 @@ function Field({
         </label>
         {labelAside}
       </div>
-      <input id={id} name={id} className="input min-h-11" {...rest} />
+      <div className="relative">
+        <input
+          id={id}
+          name={id}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
+          className={`input min-h-11 ${trailing ? "pr-[4.5rem]" : ""} ${error ? "border-st-rejected" : ""}`}
+          {...rest}
+        />
+        {trailing}
+      </div>
+      {error && (
+        <p id={`${id}-error`} className="text-[13.5px] font-semibold text-ink">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

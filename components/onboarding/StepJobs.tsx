@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/Button";
 import { ROW_STATUSES, WHEN, type DraftRow, type DraftStatus, type When } from "@/lib/onboarding";
 import { parseJobUrl } from "@/lib/services/prefill";
 
-type Tab = "links" | "hand" | "email";
+type Tab = "links" | "hand";
 const TABS: { key: Tab; label: string }[] = [
   { key: "links", label: "Paste links" },
   { key: "hand", label: "Add by hand" },
-  { key: "email", label: "Forward emails" },
 ];
 
 type Props = {
@@ -28,7 +27,7 @@ const blankRow = (patch: Partial<DraftRow>): DraftRow => ({
   location: "",
   postingUrl: "",
   source: "manual",
-  status: "applied",
+  status: "Applied",
   when: "this_week",
   parsed: false,
   ...patch,
@@ -37,7 +36,7 @@ const blankRow = (patch: Partial<DraftRow>): DraftRow => ({
 /** Step 3: "Add the jobs you've already applied to" */
 export const StepJobs = forwardRef<HTMLHeadingElement, Props>(function StepJobs({ settled, rows, setRows }, ref) {
   const [tab, setTab] = useState<Tab>("links");
-  const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ links: null, hand: null, email: null });
+  const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ links: null, hand: null });
 
   const onTabKey = (e: React.KeyboardEvent) => {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
@@ -61,7 +60,7 @@ export const StepJobs = forwardRef<HTMLHeadingElement, Props>(function StepJobs(
         }
       />
 
-      <div role="tablist" aria-label="Ways to add jobs" className="mb-5 grid grid-cols-3 gap-1 rounded-full bg-soft p-1" onKeyDown={onTabKey}>
+      <div role="tablist" aria-label="Ways to add jobs" className="mb-5 grid grid-cols-2 gap-1 rounded-full bg-soft p-1" onKeyDown={onTabKey}>
         {TABS.map((t) => (
           <button
             key={t.key}
@@ -87,15 +86,6 @@ export const StepJobs = forwardRef<HTMLHeadingElement, Props>(function StepJobs(
       <div id={`ob-panel-${tab}`} role="tabpanel" aria-labelledby={`ob-tab-${tab}`} className="mb-8">
         {tab === "links" && <PasteLinks rows={rows} setRows={setRows} />}
         {tab === "hand" && <AddByHand setRows={setRows} />}
-        {tab === "email" && (
-          <div className="rounded-tile bg-soft px-4 py-4">
-            <p className="font-bold">Coming soon</p>
-            <p className="mt-1 text-[14px] text-muted">
-              Soon you&apos;ll be able to forward application emails to your own Nudge address, and Nudge will add the jobs for
-              you. For now, paste links or add jobs by hand.
-            </p>
-          </div>
-        )}
       </div>
 
       {rows.length > 0 && <ReadyList rows={rows} setRows={setRows} />}
@@ -297,7 +287,7 @@ function ReadyList({ rows, setRows }: Pick<Props, "rows" | "setRows">) {
                     </option>
                   ))}
                 </select>
-                {r.status !== "not_applied" && (
+                {r.status !== "Researching" && (
                   <select
                     aria-label={`When you applied to ${label}`}
                     className="input min-h-11 min-w-0 flex-[1_1_150px]"

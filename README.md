@@ -23,12 +23,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon or sb_publishable_ key>
 
 ## What exists today
 
-- **Real:** sign-in and sign-up (Google, Microsoft, email + password, password reset), the three-step onboarding, and placeholder **Today** and **Career** pages that read your saved data from Supabase. Data is protected by Row Level Security.
+- **Real:** sign-in and sign-up (Google, Microsoft, email + password, password reset), the four-step onboarding, the **Job search** application tracker (add, edit, change status, archive, delete, search), and placeholder **Today** and **Career** pages that read your saved data from Supabase. Data is protected by Row Level Security.
 - **Real logic:** the "Needs a nudge" rule (`lib/services/applications.ts`) and reading job details from links (`lib/services/prefill.ts`).
-- **Still demo data:** Job search, People, and Ask Nudge read made-up data from `lib/store.tsx` and don't persist.
+- **Still demo data:** People and Ask Nudge read made-up data from `lib/store.tsx`, and Target companies are kept in the browser only. None of these persist.
 - **Stubs only:** the API routes under `app/api/` (except prefill), Ask Nudge, reminders cron.
 
-See [TASKS.md](TASKS.md) for what's next. Product docs are in [docs/](docs/). How sign-in works with Supabase, Google, and Microsoft: [docs/AUTH.md](docs/AUTH.md).
+See [TASKS.md](TASKS.md) for what's next. Product docs are in [docs/](docs/). How sign-in works with Supabase, Google, and Microsoft: [docs/AUTH.md](docs/AUTH.md). How the application tracker works: [docs/TRACKER.md](docs/TRACKER.md).
 
 ## How routing works
 
@@ -47,9 +47,10 @@ app/
   auth/confirm                email links with token_hash (confirm, reset)
   auth/continue, signout      post-sign-in routing; POST to sign out
   auth/reset-password         choose a new password
-  onboarding/                 3-step setup (page + server actions)
+  onboarding/                 4-step setup (page + server actions)
   (app)/today, career         placeholders on real data
-  (app)/search, people, ask   still demo data
+  (app)/search                application tracker (page + server actions)
+  (app)/people, ask           still demo data
 components/
   auth/                       login screen, provider buttons
   onboarding/                 the step flow and each step
