@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/Logo";
-import { ButtonLink } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { isDue } from "@/lib/services/applications";
 import { useStore } from "@/lib/store";
 
@@ -14,9 +14,9 @@ const LINKS = [
   { href: "/ask", label: "Ask Nudge" },
 ];
 
-export function AppNav() {
+export function AppNav({ name }: { name: string }) {
   const path = usePathname();
-  const { apps, userName } = useStore();
+  const { apps } = useStore();
   const due = apps.filter(isDue).length;
 
   return (
@@ -44,9 +44,11 @@ export function AppNav() {
           })}
         </nav>
         <span aria-hidden="true" className="ml-auto grid size-[34px] place-items-center rounded-full bg-brand font-extrabold text-brand-ink md:ml-0">
-          {userName.charAt(0)}
+          {name.charAt(0).toUpperCase()}
         </span>
-        <ButtonLink href="/" variant="link" size="sm">Log out</ButtonLink>
+        <form action="/auth/signout" method="post">
+          <Button type="submit" variant="link" size="sm" className="min-h-11">Log out</Button>
+        </form>
       </div>
     </header>
   );
