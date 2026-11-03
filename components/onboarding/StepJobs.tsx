@@ -75,7 +75,7 @@ export const StepJobs = forwardRef<HTMLHeadingElement, Props>(function StepJobs(
             aria-controls={`ob-panel-${t.key}`}
             tabIndex={tab === t.key ? 0 : -1}
             onClick={() => setTab(t.key)}
-            className={`min-h-11 rounded-full px-2 text-[13.5px] font-bold sm:text-[14px] ${
+            className={`min-h-11 whitespace-nowrap rounded-full px-1 text-[13px] font-bold sm:px-2 sm:text-[14px] ${
               tab === t.key ? "bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)]" : "text-muted hover:text-ink"
             }`}
           >
