@@ -19,7 +19,7 @@ As of 2026-11-03:
 - [x] **1. Connect the app to Supabase.** `.env.local` is filled in and the Data API is on.
 - [x] **2. Database tables.** Both migrations are live, and Supabase's security check reports no issues.
 - [x] **3. Redirect URL allow-list.**
-- [ ] **4. Email sign-in.** Check two settings, and optionally edit two email templates. About 5 minutes.
+- [ ] **4. Email sign-in.** Check two settings. About 2 minutes. (Custom SMTP and email templates can wait until before real users.)
 - [ ] **5. Google sign-in.** Google Cloud OAuth client, then paste it into Supabase. About 10 minutes.
 - [ ] **6. Microsoft sign-in.** Azure app registration, then paste it into Supabase. About 15 minutes.
 - [ ] **7. Run the app.**
@@ -79,7 +79,7 @@ Supabase → **Authentication → Sign In / Providers → Email**: make sure it'
 - sign up with the email you use for Supabase, or
 - set up custom SMTP (Authentication → Emails → SMTP Settings; Resend, Postmark, and others have free tiers). You'll need this before real users anyway.
 
-**Update two email templates (recommended).** Supabase → **Authentication → Emails → Templates**:
+**Update two email templates (later, once you have custom SMTP).** Supabase only lets you edit templates after custom SMTP is set up, so skip this for now. The default templates work as long as you open each link **in the same browser** that asked for it. If a confirmation link is opened somewhere else, your email still gets confirmed: just log in. When you have SMTP, go to Supabase → **Authentication → Emails → Templates**:
 
 - **Confirm signup**: change the link to
   ```html
