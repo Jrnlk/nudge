@@ -15,7 +15,7 @@ Follows the build order in CLAUDE.md. Check things off as you go.
 - [ ] Create a git repo, a GitHub remote, and a Vercel project
 
 ## Phase 1: Auth and empty accounts
-- [ ] Install the DB and auth packages, fill `.env.local` from `.env.example`
+- [ ] Install the DB and auth packages, fill `.env.local` (see SETUP.md)
 - [ ] Write `lib/db/schema.ts` and the first migration (users, applications, contacts, target_companies, goals, career_profiles)
 - [ ] Implement `lib/auth.ts` (`getUser`, `requireUser`) and email plus Google sign-in
 - [ ] Replace the fake submit in `components/AuthForm.tsx`

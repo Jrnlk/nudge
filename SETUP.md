@@ -32,7 +32,7 @@ You can do 4 and 7 first and test email sign-up before setting up Google or Micr
 ## 1. Connect the app to Supabase ✅ Done
 
 1. In Supabase, click **Connect** → **Framework** → Next.js / App Router. If you see "Database access requires the Data API", click **Enable Data API**.
-2. Copy `.env.example` to `.env.local` in the project root and fill in:
+2. Create `.env.local` in the project root with:
 
    ```
    NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
