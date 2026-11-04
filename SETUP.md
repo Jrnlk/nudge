@@ -66,6 +66,7 @@ Supabase → **Authentication → URL Configuration**:
 - **Site URL**: `http://localhost:3000` for now. Change it to your production URL (for example `https://nudge.app`) when you deploy.
 - **Redirect URLs**: add each of these:
   - `http://localhost:3000/**`
+  - `https://nudge-eight-eta.vercel.app/**` (the Vercel deploy)
   - `https://<your-production-domain>/**`
   - Optional, for Vercel preview deploys: `https://*-<your-vercel-team>.vercel.app/**`
 
