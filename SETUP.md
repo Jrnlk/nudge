@@ -32,7 +32,7 @@ You can do 4 and 7 first and test email sign-up before setting up Google or Micr
 ## 1. Connect the app to Supabase ✅ Done
 
 1. In Supabase, click **Connect** → **Framework** → Next.js / App Router. If you see "Database access requires the Data API", click **Enable Data API**.
-2. Copy `.env.example` to `.env.local` in the project root and fill in:
+2. Create `.env.local` in the project root with:
 
    ```
    NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
@@ -66,6 +66,7 @@ Supabase → **Authentication → URL Configuration**:
 - **Site URL**: `http://localhost:3000` for now. Change it to your production URL (for example `https://nudge.app`) when you deploy.
 - **Redirect URLs**: add each of these:
   - `http://localhost:3000/**`
+  - `https://nudge-eight-eta.vercel.app/**` (the Vercel deploy)
   - `https://<your-production-domain>/**`
   - Optional, for Vercel preview deploys: `https://*-<your-vercel-team>.vercel.app/**`
 

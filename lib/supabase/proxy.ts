@@ -14,6 +14,16 @@ const isProtected = (path: string) => PROTECTED.some((p) => path === p || path.s
  * profile row, so it happens in the server layouts (see lib/routing.ts).
  */
 export async function updateSession(request: NextRequest) {
+  // If redirect_to isn't on Supabase's Redirect URLs allow-list, Supabase falls back
+  // to the Site URL and sends the person to /?code=... instead of /auth/callback.
+  // Finish the sign-in there rather than showing the landing page.
+  const { pathname, searchParams } = request.nextUrl;
+  if (pathname === "/" && (searchParams.has("code") || searchParams.has("error"))) {
+    const to = request.nextUrl.clone();
+    to.pathname = "/auth/callback";
+    return NextResponse.redirect(to);
+  }
+
   let response = NextResponse.next({ request });
   const { url, key } = supabaseEnv();
 

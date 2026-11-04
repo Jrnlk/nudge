@@ -14,7 +14,7 @@ A calm job search and career app. "Everything for your job search and career, wi
 
 3. Open http://localhost:3000/login and create an account.
 
-`.env.local` needs only two values (see `.env.example`):
+Create `.env.local` in the project root with two values:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co

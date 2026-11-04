@@ -15,7 +15,7 @@ Follows the build order in CLAUDE.md. Check things off as you go.
 - [ ] Create a git repo, a GitHub remote, and a Vercel project
 
 ## Phase 1: Auth and empty accounts
-- [ ] Install the DB and auth packages, fill `.env.local` from `.env.example`
+- [ ] Install the DB and auth packages, fill `.env.local` (see SETUP.md)
 - [ ] Write `lib/db/schema.ts` and the first migration (users, applications, contacts, target_companies, goals, career_profiles)
 - [ ] Implement `lib/auth.ts` (`getUser`, `requireUser`) and email plus Google sign-in
 - [ ] Replace the fake submit in `components/AuthForm.tsx`
@@ -27,7 +27,7 @@ Follows the build order in CLAUDE.md. Check things off as you go.
 - [ ] Applications CRUD in `app/api/applications` (and `[id]`), validated, always filtered by `user_id`
 - [ ] Swap the store actions in `lib/store.tsx` to call the API (or server actions) and load real data
 - [ ] Prefill: add rate limiting and require a session on `app/api/prefill`
-- [ ] Prefill: fix company names that run together ("Oceanspray"), at least show a "check this" hint
+- [x] Prefill: fix company names that run together ("Oceanspray"), at least show a "check this" hint
 - [ ] Unit tests for `lib/services/applications.ts` and `lib/services/prefill.ts` (the SSRF checks especially)
 
 ## Phase 3: Today screen
