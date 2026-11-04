@@ -27,7 +27,7 @@ Follows the build order in CLAUDE.md. Check things off as you go.
 - [ ] Applications CRUD in `app/api/applications` (and `[id]`), validated, always filtered by `user_id`
 - [ ] Swap the store actions in `lib/store.tsx` to call the API (or server actions) and load real data
 - [ ] Prefill: add rate limiting and require a session on `app/api/prefill`
-- [ ] Prefill: fix company names that run together ("Oceanspray"), at least show a "check this" hint
+- [x] Prefill: fix company names that run together ("Oceanspray"), at least show a "check this" hint
 - [ ] Unit tests for `lib/services/applications.ts` and `lib/services/prefill.ts` (the SSRF checks especially)
 
 ## Phase 3: Today screen

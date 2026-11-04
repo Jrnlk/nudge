@@ -14,6 +14,11 @@ export interface Prefill {
   company?: string;
   role?: string;
   location?: string;
+  /**
+   * The company was rebuilt from a slug or subdomain, not readable text, so
+   * words can run together ("oceanspray" -> "Oceanspray"). Ask the person to check it.
+   */
+  companyUncertain?: boolean;
 }
 
 const nice = (s: string) =>
@@ -74,12 +79,14 @@ export function parseJobUrl(raw: string): Prefill {
     }
     return {
       company: nice(host.split(".")[0]),
+      companyUncertain: true, // from the subdomain
       role: nice(title.replace(/_[A-Z]*-?\d[\w-]*$/, "")),
       location: loc.replace(/-([A-Z]{2})$/, ", $1").replace(/-/g, " "),
     };
   }
   if (/greenhouse\.io$|lever\.co$|ashbyhq\.com$/.test(host)) {
-    return seg[0] ? { company: nice(seg[0]) } : {};
+    // from the path slug
+    return seg[0] ? { company: nice(seg[0]), companyUncertain: true } : {};
   }
   return {};
 }

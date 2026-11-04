@@ -123,7 +123,7 @@ function PasteLinks({ rows, setRows }: Pick<Props, "rows" | "setRows">) {
             location: p.location ?? "",
             postingUrl: href,
             source: "link",
-            parsed: !!p.company,
+            parsed: !!p.company && !!p.companyUncertain,
           }),
         );
       } catch {
